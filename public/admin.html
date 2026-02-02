@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | SocialHubXBD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <style>
+        body { background: #0b0f19; color: #cbd5e1; }
+        .card { background: #161b22; border: 1px solid #30363d; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-10 border-b border-gray-800 pb-6">
+            <h1 class="text-3xl font-black text-blue-500 tracking-tighter">ADMIN PANEL</h1>
+            <div class="flex gap-4">
+                <button onclick="showSection('orders')" class="px-6 py-2 bg-gray-800 rounded-xl hover:bg-gray-700 transition">📦 Orders</button>
+                <button onclick="showSection('services')" class="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 font-bold transition">🛠 Manage Services</button>
+            </div>
+        </header>
+
+        <div class="card p-6 rounded-3xl mb-10 border-l-4 border-yellow-500">
+            <h2 class="text-xl font-bold mb-4 text-white">📢 Set Special Offer Notification</h2>
+            <div class="flex gap-4">
+                <input type="text" id="annText" placeholder="Example: 50% discount on all services!" class="flex-1 bg-gray-800 p-4 rounded-xl border border-gray-700 outline-none">
+                <button onclick="setPromo(true)" class="bg-green-600 px-6 py-2 rounded-xl font-bold">Activate</button>
+                <button onclick="setPromo(false)" class="bg-red-600 px-6 py-2 rounded-xl font-bold">Close</button>
+            </div>
+        </div>
+
+        <div id="section-orders" class="space-y-6">
+            <h2 class="text-xl font-bold text-gray-400">Recent Customer Orders</h2>
+            <div class="overflow-hidden rounded-2xl border border-gray-800 shadow-2xl">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-900 text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+                        <tr>
+                            <th class="p-4">Service</th>
+                            <th class="p-4">Details</th>
+                            <th class="p-4 bg-gray-800/50">Transaction ID (TrxID)</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderList" class="divide-y divide-gray-800 bg-gray-900/40"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-services" class="hidden">
+            <div class="flex justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-400">Service Management</h2>
+                <button onclick="openModal()" class="bg-green-600 px-6 py-2 rounded-xl font-bold">+ Add Service</button>
+            </div>
+            <div id="serviceList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 p-8 rounded-[2rem] w-full max-w-sm border border-gray-700 shadow-2xl">
+            <h3 class="text-xl font-bold mb-6 text-blue-400">Save Service</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="name" placeholder="Service Name" class="w-full bg-gray-800 p-4 rounded-xl mb-4 border border-gray-700">
+            <input type="number" id="price" placeholder="Price (TK)" class="w-full bg-gray-800 p-4 rounded-xl mb-6 border border-gray-700">
+            <div class="flex gap-2">
+                <button onclick="saveService()" class="flex-1 bg-blue-600 p-4 rounded-xl font-bold">Save</button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-800 p-4 rounded-xl font-bold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pass = prompt("Enter Password:");
+        if (pass !== "social786") { window.location.href = "index.html"; }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA17tNFnMC7Bxja-d7E75sb3IpwLRmOvpo",
+            authDomain: "socialhubxbd-56a3f.firebaseapp.com",
+            projectId: "socialhubxbd-56a3f",
+            storageBucket: "socialhubxbd-56a3f.firebasestorage.app",
+            messagingSenderId: "140319149883",
+            appId: "1:140319149883:web:02c1b0c565a38e1633311e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function showSection(s) {
+            document.getElementById('section-orders').classList.toggle('hidden', s !== 'orders');
+            document.getElementById('section-services').classList.toggle('hidden', s !== 'services');
+        }
+
+        // Promo Logic
+        function setPromo(active) {
+            db.collection("settings").doc("announcement").set({ text: document.getElementById('annText').value, active: active })
+            .then(() => alert("Notification Updated!"));
+        }
+
+        // Orders List
+        db.collection("orders").orderBy("createdAt", "desc").onSnapshot(ss => {
+            const list = document.getElementById('orderList'); list.innerHTML = "";
+            ss.forEach(doc => {
+                const o = doc.data();
+                list.innerHTML += `<tr class="hover:bg-gray-800/30 transition">
+                    <td class="p-4 font-bold text-blue-400">${o.service}</td>
+                    <td class="p-4 text-[11px] text-gray-500 italic">Link: ${o.link}<br>Qty: ${o.qty}<br>WP: ${o.whatsapp}</td>
+                    <td class="p-4 bg-gray-800/40 text-yellow-500 font-mono font-black text-lg tracking-widest">${o.trxID}</td>
+                    <td class="p-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold ${o.status==='Completed'?'bg-green-900 text-green-300':'bg-yellow-900 text-yellow-300'}">${o.status}</span></td>
+                    <td class="p-4 text-center space-x-2">
+                        <button onclick="db.collection('orders').doc('${doc.id}').update({status:'Completed'})" class="bg-blue-600 px-3 py-1 rounded-lg text-xs">✔</button>
+                        <button onclick="db.collection('orders').doc('${doc.id}').delete()" class="bg-red-600 px-3 py-1 rounded-lg text-xs">🗑</button>
+                    </td>
+                </tr>`;
+            });
+        });
+
+        // Service List
+        db.collection("services").onSnapshot(ss => {
+            const list = document.getElementById('serviceList'); list.innerHTML = "";
+            ss.forEach(doc => {
+                const s = doc.data();
+                list.innerHTML += `<div class="card p-6 rounded-3xl">
+                    <h4 class="text-lg font-black text-white">${s.name}</h4>
+                    <p class="text-blue-500 text-2xl font-black mt-1">৳${s.price}</p>
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="openModal('${doc.id}','${s.name}','${s.price}')" class="flex-1 bg-gray-800 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 transition">Edit</button>
+                        <button onclick="db.collection('services').doc('${doc.id}').delete()" class="flex-1 bg-red-900/20 text-red-500 py-2 rounded-xl text-xs font-bold hover:bg-red-900/40 transition">Delete</button>
+                    </div>
+                </div>`;
+            });
+        });
+
+        function openModal(id='', n='', p='') {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('editId').value = id; document.getElementById('name').value = n; document.getElementById('price').value = p;
+        }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        function saveService() {
+            const id = document.getElementById('editId').value;
+            const data = { name: document.getElementById('name').value, price: document.getElementById('price').value };
+            id ? db.collection("services").doc(id).update(data) : db.collection("services").add(data);
+            closeModal();
+        }
+    </script>
+</body>
+</html>
