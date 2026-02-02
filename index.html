@@ -26,7 +26,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
         }
         
-        /* Premium Animated Logo */
         .animated-logo {
             font-family: 'Orbitron', sans-serif;
             background: linear-gradient(90deg, #3b82f6, #a5b4fc, #60a5fa, #3b82f6);
@@ -37,7 +36,6 @@
         }
         @keyframes shine { to { background-position: 200% center; } }
 
-        /* Rocket Icon Animation */
         .rocket-float { animation: floating 3s ease-in-out infinite; }
         @keyframes floating { 
             0%, 100% { transform: translateY(0); }
@@ -53,7 +51,6 @@
         }
         input:focus { border-color: #3b82f6 !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
 
-        /* Live Activity Toast */
         .live-toast { 
             position: fixed; bottom: 25px; left: 25px; 
             background: rgba(15, 23, 42, 0.8); 
@@ -80,12 +77,33 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 pb-20">
 
+    <div id="offerModal" class="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-[5000] hidden backdrop-blur-md">
+        <div class="bg-white rounded-[2.5rem] overflow-hidden max-w-sm w-full shadow-2xl relative" id="modalContent">
+            <button onclick="closeOffer()" class="absolute top-4 right-4 text-gray-400 hover:text-black z-10">
+                <i class="fas fa-times-circle text-2xl"></i>
+            </button>
+            <div class="bg-gradient-to-br from-blue-700 to-indigo-900 p-10 text-center text-white">
+                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/20">
+                    <i class="fas fa-fire text-3xl text-yellow-400"></i>
+                </div>
+                <h3 id="popPercent" class="text-5xl font-black italic">50% OFF</h3>
+                <p id="popBadge" class="text-[10px] font-bold uppercase tracking-[0.3em] opacity-70 mt-2">FLASH SALE</p>
+            </div>
+            <div class="p-8 text-center">
+                <h2 id="popTitle" class="text-2xl font-black text-gray-900 leading-tight">OFFER TITLE</h2>
+                <p id="popDesc" class="text-gray-500 text-sm mt-3 px-2 italic">Offer details will appear here.</p>
+                <button onclick="closeOffer()" class="w-full mt-8 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30">
+                    GET OFFER NOW
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="live-toast" class="live-toast opacity-0 translate-y-20">
         <i class="fas fa-shopping-cart mr-2 text-blue-400"></i> <span id="toast-text">Someone just ordered 1k Followers!</span>
     </div>
 
     <div class="max-w-md w-full glass p-8 rounded-[3.5rem] relative border-b-4 border-blue-600 shadow-2xl">
-        
         <div class="text-center mb-8">
             <div class="flex justify-center mb-3">
                 <div class="h-16 w-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center rocket-float shadow-xl">
@@ -149,9 +167,9 @@
             <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/40">
                 <i class="fas fa-check text-4xl text-white"></i>
             </div>
-            <h2 class="text-2xl font-black mb-4 uppercase">অর্ডার সফল হয়েছে!</h2>
+            <h2 class="text-2xl font-black mb-4 uppercase">অর্ডার সফল হয়েছে!</h2>
             <div class="text-gray-400 text-sm leading-relaxed space-y-3">
-                <p>আপনার অর্ডারটি অ্যাডমিনের কাছে পাঠানো হয়েছে। পেমেন্ট ঠিক থাকলে কিছুক্ষণের মধ্যে সম্পন্ন করা হবে।</p>
+                <p>আপনার অর্ডারটি অ্যাডমিনের কাছে পাঠানো হয়েছে। পেমেন্ট ঠিক থাকলে কিছুক্ষণের মধ্যে সম্পন্ন করা হবে।</p>
                 <p class="text-blue-400 font-bold">সর্বোচ্চ ১২ ঘন্টার মধ্যে ডেলিভারি পাবেন।</p>
             </div>
             <button onclick="location.reload()" class="w-full mt-8 bg-blue-600 py-4 rounded-2xl font-bold uppercase tracking-widest">ঠিক আছে</button>
@@ -175,17 +193,30 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // TELEGRAM CONFIG (Apnar Info)
         const botToken = "8073726192:AAEgyXf884Gz5NFlfMPPb6f1fbHZ3mFOTZU"; 
         const chatId = "7236181886"; 
 
-        // Copy Function
+        // --- Offer Popup Logic ---
+        function showOffer(data) {
+            if(!data.active) return;
+            document.getElementById('popTitle').innerText = data.title;
+            document.getElementById('popDesc').innerText = data.desc;
+            document.getElementById('popPercent').innerText = data.percent;
+            document.getElementById('popBadge').innerText = data.badge;
+            document.getElementById('offerModal').classList.remove('hidden');
+        }
+        function closeOffer() { document.getElementById('offerModal').classList.add('hidden'); }
+
+        db.collection("settings").doc("specialOffer").onSnapshot((doc) => {
+            if (doc.exists) setTimeout(() => showOffer(doc.data()), 2000);
+        });
+
+        // --- Other Functions ---
         function copyNumber(num) {
             navigator.clipboard.writeText(num);
             alert("Payment Number Copied!");
         }
 
-        // Fetch Services
         db.collection("services").onSnapshot(ss => {
             const s = document.getElementById('service');
             s.innerHTML = '<option value="0">-- Select Service --</option>';
@@ -195,7 +226,6 @@
             });
         });
 
-        // Price Calculation Logic
         function calculatePrice() {
             const pricePer1k = parseFloat(document.getElementById('service').value);
             const qty = parseFloat(document.getElementById('qty').value);
@@ -206,7 +236,6 @@
             } else { display.innerText = "0.00"; }
         }
 
-        // Order Function
         async function placeOrder() {
             const btn = document.getElementById('orderBtn');
             const sTag = document.getElementById('service');
@@ -222,39 +251,30 @@
 
             btn.disabled = true; btn.innerText = "Processing...";
 
-            // 1. Save to Database
             db.collection("orders").add({
                 service: sName, link, qty, trxID, amount, method,
                 status: "Pending", createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(async () => {
-                
-                // 2. Silent Telegram Notify
-                const text = `🚀 *NEW ORDER ON SOCIALHUBXBD!*%0A%0A📦 *Service:* ${sName}%0A🔗 *Link:* ${link}%0A🔢 *Qty:* ${qty}%0A💰 *Amount:* ৳${amount}%0A💳 *Method:* ${method}%0A🆔 *TrxID:* ${trxID}`;
-                
-                try {
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`);
-                } catch (e) { console.log(e); }
-
+                const text = `🚀 *NEW ORDER!*%0A📦 *Service:* ${sName}%0A🔗 *Link:* ${link}%0A🔢 *Qty:* ${qty}%0A💰 *Amount:* ৳${amount}%0A💳 *Method:* ${method}%0A🆔 *TrxID:* ${trxID}`;
+                try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`); } catch (e) {}
                 document.getElementById('successModal').classList.remove('hidden');
             });
         }
 
-        // Track Order Function (No Login)
         function trackOrder() {
             const trx = prompt("আপনার TrxID টি এখানে দিন:");
             if(!trx) return;
             db.collection("orders").where("trxID", "==", trx.trim()).get().then(qs => {
-                if(qs.empty) alert("অর্ডার পাওয়া যায়নি! TrxID চেক করুন।");
+                if(qs.empty) alert("অর্ডার পাওয়া যায়নি!");
                 else qs.forEach(doc => alert(`অর্ডার স্ট্যাটাস: ${doc.data().status}\nসার্ভিস: ${doc.data().service}`));
             });
         }
 
-        // Simulated Trust Activity
-        const services = ["Facebook Followers", "YouTube Views", "TikTok Likes", "Instagram Followers"];
+        const servicesArr = ["Facebook Followers", "YouTube Views", "TikTok Likes", "Instagram Followers"];
         setInterval(() => {
             if(Math.random() > 0.6) {
                 const toast = document.getElementById('live-toast');
-                document.getElementById('toast-text').innerText = `Someone just ordered ${Math.floor(Math.random()*2000)+500} ${services[Math.floor(Math.random()*services.length)]}`;
+                document.getElementById('toast-text').innerText = `Someone just ordered ${Math.floor(Math.random()*2000)+500} ${servicesArr[Math.floor(Math.random()*servicesArr.length)]}`;
                 toast.style.opacity = "1"; toast.style.transform = "translateY(0)";
                 setTimeout(() => { toast.style.opacity = "0"; toast.style.transform = "translateY(40px)"; }, 4000);
             }
