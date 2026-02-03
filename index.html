@@ -227,9 +227,9 @@
             <div class="check-container">
                 <i class="fas fa-check text-4xl text-white"></i>
             </div>
-            <h2 class="text-2xl font-black mb-3 orbitron uppercase">অর্ডার সফল হয়েছে!</h2>
+            <h2 class="text-2xl font-black mb-3 orbitron uppercase">অর্ডার সফল হয়েছে!</h2>
             <p class="text-gray-400 text-sm leading-relaxed mb-8">
-                আপনার অর্ডারটি অ্যাডমিনের কাছে পাঠানো হয়েছে। পেমেন্ট ঠিক থাকলে কিছুক্ষণের মধ্যে সম্পন্ন করা হবে।<br><br>
+                আপনার অর্ডারটি অ্যাডমিনের কাছে পাঠানো হয়েছে। পেমেন্ট ঠিক থাকলে কিছুক্ষণের মধ্যে সম্পন্ন করা হবে।<br><br>
                 <span class="text-blue-400 font-bold uppercase text-[10px]">সর্বোচ্চ ১২ ঘণ্টার মধ্যে ডেলিভারি পাবেন।</span>
             </p>
             <button onclick="location.reload()" class="bg-blue-600 w-full py-4 rounded-xl font-black orbitron shadow-lg shadow-blue-500/20">ঠিক আছে</button>
@@ -253,7 +253,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. Loading Categories from Firebase
         db.collection("categories").onSnapshot(ss => {
             const catSelect = document.getElementById('category');
             catSelect.innerHTML = '<option value="">-- Select Category --</option>';
@@ -262,12 +261,10 @@
             });
         });
 
-        // 2. Loading Services Based on Category
         function loadServices() {
             const catId = document.getElementById('category').value;
             const serviceSelect = document.getElementById('service');
             serviceSelect.innerHTML = '<option value="0">Loading Services...</option>';
-            
             db.collection("services").where("categoryId", "==", catId).onSnapshot(ss => {
                 serviceSelect.innerHTML = '<option value="0">-- Select Service --</option>';
                 ss.forEach(doc => { 
@@ -293,13 +290,10 @@
             const link = document.getElementById('link').value.trim();
             const qty = document.getElementById('qty').value;
             const service = document.getElementById('service').value;
-
             if(!name || !link || !qty || service == "0") return alert("Please fill all fields!");
-
             currentOrderID = "SHX-" + Math.floor(100000 + Math.random() * 900000);
             document.getElementById('displayOrderID').innerText = "#" + currentOrderID;
             document.getElementById('confirmAmount').innerText = document.getElementById('totalAmount').innerText;
-            
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
         }
@@ -330,7 +324,19 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            db.collection("orders").add(orderData).then(() => {
+            // Firebase Save
+            db.collection("orders").add(orderData).then(async () => {
+                
+                // --- Telegram Forward Start ---
+                const botToken = "8073726192:AAEgyXf884Gz5NFlfMPPb6f1fbHZ3mFOTZU";
+                const chatId = "7236181886";
+                const text = `🚀 *New Order Alert!*%0A━━━━━━━━━━━━━━%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A🔗 *Link:* ${orderData.link}%0A🔢 *Qty:* ${orderData.qty}%0A💰 *Amount:* ৳${orderData.amount}%0A💳 *Method:* ${orderData.method}%0A🆔 *TrxID:* ${orderData.trxID}%0A🆔 *Order ID:* #${orderData.orderID}%0A━━━━━━━━━━━━━━`;
+                
+                try {
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`);
+                } catch(e) { console.log("Telegram Error", e); }
+                // --- Telegram Forward End ---
+
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
             }).catch(err => {
