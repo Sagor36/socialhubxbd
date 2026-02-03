@@ -2,54 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | SocialHubXBD</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         body { background: #0b0f19; color: #cbd5e1; font-family: 'Inter', sans-serif; }
         .card { background: #161b22; border: 1px solid #30363d; }
-        input, textarea { background: #0b0f19 !important; border: 1px solid #30363d !important; color: white !important; }
+        input, textarea, select { background: #0b0f19 !important; border: 1px solid #30363d !important; color: white !important; outline: none; }
+        input:focus { border-color: #3b82f6 !important; }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-10">
 
     <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10 border-b border-gray-800 pb-6">
-            <h1 class="text-3xl font-black text-blue-500 tracking-tighter">ADMIN PANEL</h1>
-            <div class="flex gap-4">
-                <button onclick="showSection('orders')" class="px-6 py-2 bg-gray-800 rounded-xl hover:bg-gray-700 transition font-bold">📦 Orders</button>
-                <button onclick="showSection('services')" class="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 font-bold transition font-bold">🛠 Services</button>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-800 pb-6 gap-4">
+            <h1 class="text-3xl font-black text-blue-500 tracking-tighter italic">SOCIALHUBXBD <span class="text-white">ADMIN</span></h1>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="showSection('orders')" class="px-5 py-2 bg-gray-800 rounded-xl hover:bg-gray-700 transition font-bold text-sm">📦 Orders</button>
+                <button onclick="showSection('categories')" class="px-5 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-500 font-bold text-sm transition">📁 Categories</button>
+                <button onclick="showSection('services')" class="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 font-bold text-sm transition">🛠 Services</button>
             </div>
         </header>
 
-        <div class="card p-8 rounded-[2.5rem] mb-10 border-l-4 border-blue-500 shadow-2xl">
-            <h2 class="text-xl font-bold mb-6 text-white flex items-center gap-2">
-                <span class="bg-blue-500/20 p-2 rounded-lg text-blue-500"><i class="fas fa-gift"></i></span>
-                Set Website Special Offer Popup
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <input type="text" id="offTitle" placeholder="Offer Title (e.g. YouTube Booster)" class="p-4 rounded-xl outline-none">
-                <input type="text" id="offPerc" placeholder="Percent (e.g. 60% OFF)" class="p-4 rounded-xl outline-none">
-                <input type="text" id="offBadge" placeholder="Badge (e.g. FLASH SALE)" class="p-4 rounded-xl outline-none">
-            </div>
-            <textarea id="offDesc" placeholder="Description Message..." class="w-full p-4 rounded-xl mb-6 outline-none h-20"></textarea>
-            
-            <div class="flex gap-4">
-                <button onclick="saveOffer(true)" class="flex-1 bg-green-600 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-green-700 transition">Activate & Update</button>
-                <button onclick="saveOffer(false)" class="flex-1 bg-red-600/20 text-red-500 py-4 rounded-2xl font-black uppercase tracking-widest border border-red-900/50 hover:bg-red-900/30 transition">Close Popup</button>
-            </div>
-        </div>
-
         <div id="section-orders" class="space-y-6">
-            <h2 class="text-xl font-bold text-gray-400 px-2">Recent Customer Orders</h2>
-            <div class="overflow-hidden rounded-2xl border border-gray-800 shadow-2xl">
-                <table class="w-full text-left">
+            <h2 class="text-xl font-bold text-gray-400 px-2 flex items-center gap-2"><i class="fas fa-shopping-bag"></i> Recent Orders</h2>
+            <div class="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-900 text-gray-500 text-[10px] uppercase tracking-[0.2em]">
                         <tr>
-                            <th class="p-4 italic text-blue-500">Service</th>
-                            <th class="p-4">Details</th>
-                            <th class="p-4 bg-gray-800/30">Transaction ID</th>
+                            <th class="p-4">Customer/Order ID</th>
+                            <th class="p-4">Service Details</th>
+                            <th class="p-4">Transaction ID</th>
                             <th class="p-4">Status</th>
                             <th class="p-4 text-center">Action</th>
                         </tr>
@@ -59,30 +47,58 @@
             </div>
         </div>
 
+        <div id="section-categories" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-400">Manage Categories</h2>
+                <button onclick="openCatModal()" class="bg-purple-600 px-6 py-2 rounded-xl font-bold text-sm">+ Add Category</button>
+            </div>
+            <div id="categoryList" class="grid grid-cols-1 md:grid-cols-4 gap-4"></div>
+        </div>
+
         <div id="section-services" class="hidden">
-            <div class="flex justify-between mb-6">
-                <h2 class="text-xl font-bold text-gray-400">Service Management</h2>
-                <button onclick="openModal()" class="bg-blue-600 px-6 py-2 rounded-xl font-bold">+ Add Service</button>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-400">Manage Services</h2>
+                <button onclick="openSerModal()" class="bg-blue-600 px-6 py-2 rounded-xl font-bold text-sm">+ Add Service</button>
             </div>
             <div id="serviceList" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-4 z-[5000]">
-        <div class="bg-[#161b22] p-8 rounded-[2rem] w-full max-w-sm border border-gray-700 shadow-2xl">
-            <h3 class="text-xl font-bold mb-6 text-blue-400 uppercase tracking-tighter">Save Service</h3>
-            <input type="hidden" id="editId">
-            <input type="text" id="name" placeholder="Service Name" class="w-full p-4 rounded-xl mb-4 outline-none">
-            <input type="number" id="price" placeholder="Price (TK) per 1k" class="w-full p-4 rounded-xl mb-6 outline-none">
+    <div id="catModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[5001]">
+        <div class="bg-[#161b22] p-8 rounded-[2rem] w-full max-w-sm border border-gray-700">
+            <h3 class="text-xl font-bold mb-6 text-purple-400 uppercase italic">Save Category</h3>
+            <input type="hidden" id="editCatId">
+            <input type="text" id="catName" placeholder="Category Name (e.g. Facebook Followers)" class="w-full p-4 rounded-xl mb-6 outline-none">
             <div class="flex gap-2">
-                <button onclick="saveService()" class="flex-1 bg-blue-600 p-4 rounded-xl font-bold">Save</button>
-                <button onclick="closeModal()" class="flex-1 bg-gray-800 p-4 rounded-xl font-bold">Cancel</button>
+                <button onclick="saveCategory()" class="flex-1 bg-purple-600 p-4 rounded-xl font-bold text-white">Save</button>
+                <button onclick="closeCatModal()" class="flex-1 bg-gray-800 p-4 rounded-xl font-bold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="serModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[5000]">
+        <div class="bg-[#161b22] p-8 rounded-[2rem] w-full max-w-sm border border-gray-700">
+            <h3 class="text-xl font-bold mb-6 text-blue-400 uppercase italic">Save Service</h3>
+            <input type="hidden" id="editSerId">
+            
+            <label class="text-xs text-gray-500 uppercase font-bold ml-1">Select Category</label>
+            <select id="serCatId" class="w-full p-4 rounded-xl mb-4 mt-1 outline-none"></select>
+            
+            <label class="text-xs text-gray-500 uppercase font-bold ml-1">Service Name</label>
+            <input type="text" id="serName" placeholder="Service Name" class="w-full p-4 rounded-xl mb-4 mt-1 outline-none">
+            
+            <label class="text-xs text-gray-500 uppercase font-bold ml-1">Price per 1k (TK)</label>
+            <input type="number" id="serPrice" placeholder="Price (TK)" class="w-full p-4 rounded-xl mb-6 mt-1 outline-none">
+            
+            <div class="flex gap-2">
+                <button onclick="saveService()" class="flex-1 bg-blue-600 p-4 rounded-xl font-bold text-white">Save</button>
+                <button onclick="closeSerModal()" class="flex-1 bg-gray-800 p-4 rounded-xl font-bold">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        let pass = prompt("Enter Password:");
+        let pass = prompt("Enter Admin Password:");
         if (pass !== "social786") { window.location.href = "index.html"; }
 
         const firebaseConfig = {
@@ -98,76 +114,124 @@
 
         function showSection(s) {
             document.getElementById('section-orders').classList.toggle('hidden', s !== 'orders');
+            document.getElementById('section-categories').classList.toggle('hidden', s !== 'categories');
             document.getElementById('section-services').classList.toggle('hidden', s !== 'services');
         }
 
-        // Advance Offer Logic
-        function saveOffer(active) {
-            db.collection("settings").doc("specialOffer").set({
-                title: document.getElementById('offTitle').value,
-                percent: document.getElementById('offPerc').value,
-                badge: document.getElementById('offBadge').value,
-                desc: document.getElementById('offDesc').value,
-                active: active
-            }).then(() => alert("Website Popup Updated Successfully!"));
+        // --- CATEGORY LOGIC ---
+        function openCatModal(id='', name='') {
+            document.getElementById('catModal').classList.remove('hidden');
+            document.getElementById('editCatId').value = id;
+            document.getElementById('catName').value = name;
+        }
+        function closeCatModal() { document.getElementById('catModal').classList.add('hidden'); }
+
+        function saveCategory() {
+            const id = document.getElementById('editCatId').value;
+            const name = document.getElementById('catName').value;
+            if(!name) return alert("Enter Name!");
+            const data = { name: name };
+            id ? db.collection("categories").doc(id).update(data) : db.collection("categories").add(data);
+            closeCatModal();
         }
 
-        // Fetch existing offer data
-        db.collection("settings").doc("specialOffer").get().then(doc => {
-            if(doc.exists) {
-                const d = doc.data();
-                document.getElementById('offTitle').value = d.title || "";
-                document.getElementById('offPerc').value = d.percent || "";
-                document.getElementById('offBadge').value = d.badge || "";
-                document.getElementById('offDesc').value = d.desc || "";
-            }
-        });
-
-        // Orders List
-        db.collection("orders").orderBy("createdAt", "desc").onSnapshot(ss => {
-            const list = document.getElementById('orderList'); list.innerHTML = "";
+        db.collection("categories").onSnapshot(ss => {
+            const list = document.getElementById('categoryList');
+            const select = document.getElementById('serCatId');
+            list.innerHTML = ""; select.innerHTML = "";
             ss.forEach(doc => {
-                const o = doc.data();
-                list.innerHTML += `<tr class="hover:bg-gray-800/30 transition">
-                    <td class="p-4 font-bold text-blue-400">${o.service}</td>
-                    <td class="p-4 text-[11px] text-gray-500 italic">Link: ${o.link}<br>Qty: ${o.qty}<br>Method: ${o.method}</td>
-                    <td class="p-4 bg-gray-800/40 text-yellow-500 font-mono font-black text-lg tracking-widest">${o.trxID}</td>
-                    <td class="p-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold ${o.status==='Completed'?'bg-green-900 text-green-300':'bg-yellow-900 text-yellow-300'}">${o.status}</span></td>
-                    <td class="p-4 text-center space-x-2">
-                        <button onclick="db.collection('orders').doc('${doc.id}').update({status:'Completed'})" class="bg-blue-600 px-3 py-1 rounded-lg text-xs">✔</button>
-                        <button onclick="if(confirm('Delete order?')) db.collection('orders').doc('${doc.id}').delete()" class="bg-red-600 px-3 py-1 rounded-lg text-xs">🗑</button>
-                    </td>
-                </tr>`;
+                const c = doc.data();
+                list.innerHTML += `<div class="card p-4 rounded-2xl flex justify-between items-center">
+                    <span class="font-bold text-white">${c.name}</span>
+                    <div class="flex gap-2">
+                        <button onclick="openCatModal('${doc.id}','${c.name}')" class="text-blue-500 hover:text-white"><i class="fas fa-edit"></i></button>
+                        <button onclick="if(confirm('Delete Category?')) db.collection('categories').doc('${doc.id}').delete()" class="text-red-500 hover:text-white"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+                select.innerHTML += `<option value="${doc.id}">${c.name}</option>`;
             });
         });
 
-        // Service List (Same as yours)
+        // --- SERVICE LOGIC ---
+        function openSerModal(id='', cat='', name='', price='') {
+            document.getElementById('serModal').classList.remove('hidden');
+            document.getElementById('editSerId').value = id;
+            document.getElementById('serCatId').value = cat;
+            document.getElementById('serName').value = name;
+            document.getElementById('serPrice').value = price;
+        }
+        function closeSerModal() { document.getElementById('serModal').classList.add('hidden'); }
+
+        function saveService() {
+            const id = document.getElementById('editSerId').value;
+            const data = {
+                categoryId: document.getElementById('serCatId').value,
+                name: document.getElementById('serName').value,
+                price: document.getElementById('serPrice').value
+            };
+            if(!data.name || !data.price) return alert("Fill all fields!");
+            id ? db.collection("services").doc(id).update(data) : db.collection("services").add(data);
+            closeSerModal();
+        }
+
         db.collection("services").onSnapshot(ss => {
             const list = document.getElementById('serviceList'); list.innerHTML = "";
             ss.forEach(doc => {
                 const s = doc.data();
                 list.innerHTML += `<div class="card p-6 rounded-3xl">
-                    <h4 class="text-lg font-black text-white">${s.name}</h4>
-                    <p class="text-blue-500 text-2xl font-black mt-1">৳${s.price}</p>
+                    <div class="flex justify-between items-start mb-2">
+                         <h4 class="text-lg font-black text-white leading-tight">${s.name}</h4>
+                         <span class="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold uppercase tracking-widest">Active</span>
+                    </div>
+                    <p class="text-blue-500 text-2xl font-black mt-1">৳${s.price}<span class="text-xs text-gray-500 font-normal"> /1k</span></p>
                     <div class="mt-4 flex gap-2">
-                        <button onclick="openModal('${doc.id}','${s.name}','${s.price}')" class="flex-1 bg-gray-800 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 transition">Edit</button>
+                        <button onclick="openSerModal('${doc.id}','${s.categoryId}','${s.name}','${s.price}')" class="flex-1 bg-gray-800 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 transition">Edit</button>
                         <button onclick="if(confirm('Delete service?')) db.collection('services').doc('${doc.id}').delete()" class="flex-1 bg-red-900/20 text-red-500 py-2 rounded-xl text-xs font-bold hover:bg-red-900/40 transition">Delete</button>
                     </div>
                 </div>`;
             });
         });
 
-        function openModal(id='', n='', p='') {
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('editId').value = id; document.getElementById('name').value = n; document.getElementById('price').value = p;
-        }
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-        function saveService() {
-            const id = document.getElementById('editId').value;
-            const data = { name: document.getElementById('name').value, price: document.getElementById('price').value };
-            id ? db.collection("services").doc(id).update(data) : db.collection("services").add(data);
-            closeModal();
-        }
+        // --- ORDERS LIST ---
+        db.collection("orders").orderBy("createdAt", "desc").onSnapshot(ss => {
+            const list = document.getElementById('orderList'); list.innerHTML = "";
+            ss.forEach(doc => {
+                const o = doc.data();
+                const date = o.createdAt ? new Date(o.createdAt.seconds * 1000).toLocaleString() : "Just now";
+                list.innerHTML += `<tr class="hover:bg-gray-800/30 transition text-sm">
+                    <td class="p-4 border-b border-gray-800">
+                        <div class="font-black text-white text-base">${o.userName || 'Guest'}</div>
+                        <div class="text-blue-500 font-mono text-[10px] tracking-widest uppercase">ID: ${o.orderID}</div>
+                        <div class="text-[9px] text-gray-600 mt-1 uppercase">${date}</div>
+                    </td>
+                    <td class="p-4 border-b border-gray-800">
+                        <div class="text-gray-300 font-bold text-xs">${o.service}</div>
+                        <div class="text-[10px] text-gray-500 break-all mt-1">URL: <a href="${o.link}" target="_blank" class="text-blue-600 underline">${o.link}</a></div>
+                        <div class="flex gap-4 mt-1 text-[10px] font-bold">
+                            <span class="text-purple-400">QTY: ${o.qty}</span>
+                            <span class="text-green-500">PAY: ৳${o.amount}</span>
+                        </div>
+                    </td>
+                    <td class="p-4 border-b border-gray-800">
+                        <div class="bg-gray-800/80 px-3 py-2 rounded-lg text-yellow-500 font-mono font-black text-center tracking-widest border border-yellow-500/10">
+                            ${o.trxID}
+                            <div class="text-[8px] text-gray-500 mt-1">${o.method || 'bKash'}</div>
+                        </div>
+                    </td>
+                    <td class="p-4 border-b border-gray-800">
+                        <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${o.status==='Completed'?'bg-green-500/10 text-green-500 border border-green-500/20':'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-4 border-b border-gray-800 text-center">
+                        <div class="flex flex-col gap-2">
+                            <button onclick="db.collection('orders').doc('${doc.id}').update({status:'Completed'})" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition uppercase">Complete</button>
+                            <button onclick="if(confirm('Delete Order?')) db.collection('orders').doc('${doc.id}').delete()" class="bg-red-600/10 hover:bg-red-600 text-red-600 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition uppercase">Delete</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        });
     </script>
 </body>
 </html>
