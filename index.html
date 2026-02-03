@@ -64,7 +64,7 @@
         .btn-gradient:hover { opacity: 0.9; transform: scale(1.02); }
 
         /* Modal Blur */
-        #orderModal { backdrop-filter: blur(20px); }
+        #orderModal, #trackingModal { backdrop-filter: blur(20px); }
         .hidden { display: none !important; }
 
         /* Success Checkmark Animation */
@@ -76,6 +76,17 @@
             margin: 0 auto 20px;
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
         }
+
+        /* Tracking UI specific */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-pending { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid #eab308; }
+        .status-completed { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
     </style>
 </head>
 <body class="hero-bg">
@@ -88,7 +99,7 @@
         <div class="hidden md:flex gap-8 text-[11px] font-bold uppercase tracking-widest text-gray-400">
             <a href="#" class="hover:text-blue-400">Home</a>
             <a href="javascript:void(0)" onclick="openOrder()" class="hover:text-blue-400">New Order</a>
-            <a href="javascript:void(0)" onclick="trackOrder()" class="hover:text-blue-400">Track Order</a>
+            <a href="javascript:void(0)" onclick="openTrackingModal()" class="hover:text-blue-400">Track Order</a>
         </div>
         <button onclick="openOrder()" class="bg-purple-600 px-6 py-2 rounded-lg font-bold text-xs uppercase btn-gradient shadow-lg">Get Started</button>
     </nav>
@@ -105,7 +116,7 @@
         </p>
         <div class="flex flex-col md:flex-row justify-center gap-5">
             <button onclick="openOrder()" class="btn-gradient px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-purple-500/20">Start Now</button>
-            <button class="bg-white/5 border border-white/10 px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-white/10 transition">View Services</button>
+            <button onclick="openTrackingModal()" class="bg-white/5 border border-white/10 px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-white/10 transition">Track Order</button>
         </div>
         
         <div class="mt-20 flex justify-center gap-8 opacity-30 text-[11px] font-bold uppercase tracking-widest">
@@ -137,22 +148,33 @@
         </div>
     </section>
 
-    <footer class="border-t border-white/5 py-16 px-4">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div class="text-center md:text-left">
-                <h4 class="orbitron font-black text-xl mb-2">SocialHubXBD</h4>
-                <p class="text-gray-500 text-sm">Guest-friendly social marketing portal.</p>
+    <div id="trackingModal" class="fixed inset-0 bg-black/95 z-[110] flex items-center justify-center p-4 hidden">
+        <div class="bg-[#0a0f1e] w-full max-w-md p-8 rounded-[3rem] border border-white/10 relative shadow-2xl">
+            <button onclick="closeTrackingModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+            <div class="text-center mb-8">
+                <h2 class="orbitron text-xl font-black tracking-tighter mb-2">Track Order</h2>
+                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Order ID or Transaction ID</p>
             </div>
-            <div class="flex gap-10 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                <a href="#" class="hover:text-white">Terms of Service</a>
-                <a href="#" class="hover:text-white">Privacy Policy</a>
-                <a href="https://wa.me/8801408461902" class="hover:text-white">WhatsApp Support</a>
+            <div class="space-y-4">
+                <input type="text" id="trackInput" placeholder="Enter ID here..." class="w-full p-4 rounded-2xl text-center orbitron font-bold text-blue-400 tracking-widest">
+                <button onclick="startTracking()" id="trackBtn" class="btn-gradient w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs">Search Status</button>
+            </div>
+            <div id="trackResult" class="mt-8 pt-8 border-t border-white/5 hidden">
+                <div class="bg-white/5 p-6 rounded-[2rem] border border-white/10">
+                    <div class="flex justify-between items-center mb-4">
+                        <span id="resStatus" class="status-badge status-pending">Status</span>
+                        <span id="resID" class="orbitron text-xs font-bold text-blue-400">#ID</span>
+                    </div>
+                    <div class="space-y-2 text-[11px]">
+                        <div class="flex justify-between"><span class="text-gray-500">Service:</span> <span id="resService" class="font-bold text-right max-w-[150px] truncate">--</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Quantity:</span> <span id="resQty" class="font-bold">0</span></div>
+                    </div>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
 
     <div id="orderModal" class="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 hidden backdrop-blur-md">
-        
         <div id="step1" class="bg-[#0a0f1e] w-full max-w-md p-8 rounded-[3rem] border border-white/10 relative shadow-2xl">
             <button onclick="closeOrder()" class="absolute top-6 right-6 text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
             <div class="flex items-center gap-3 mb-8">
@@ -162,33 +184,19 @@
                     <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Boost stats in seconds</p>
                 </div>
             </div>
-            
             <div class="space-y-4">
                 <input type="text" id="userName" placeholder="Your Full Name" class="w-full p-4 rounded-2xl text-sm">
-                
-                <select id="category" onchange="loadServices()" class="w-full p-4 rounded-2xl text-sm">
-                    <option value="">-- Select Category --</option>
-                </select>
-
-                <select id="service" onchange="calculatePrice()" class="w-full p-4 rounded-2xl text-sm">
-                    <option value="0">-- Select Service --</option>
-                </select>
-
+                <select id="category" onchange="loadServices()" class="w-full p-4 rounded-2xl text-sm"><option value="">-- Select Category --</option></select>
+                <select id="service" onchange="calculatePrice()" class="w-full p-4 rounded-2xl text-sm"><option value="0">-- Select Service --</option></select>
                 <input type="text" id="link" placeholder="Target Link (URL)" class="w-full p-4 rounded-2xl text-sm">
-                
                 <div class="grid grid-cols-2 gap-4">
                     <input type="number" id="qty" oninput="calculatePrice()" placeholder="Quantity" class="w-full p-4 rounded-2xl text-sm">
-                    <select id="method" class="w-full p-4 rounded-2xl text-sm">
-                        <option value="bKash">bKash</option>
-                        <option value="Nagad">Nagad</option>
-                    </select>
+                    <select id="method" class="w-full p-4 rounded-2xl text-sm"><option value="bKash">bKash</option><option value="Nagad">Nagad</option></select>
                 </div>
-
                 <div class="p-5 bg-white/5 rounded-2xl flex justify-between items-center border border-white/5">
                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Estimated Price:</span>
                     <span class="text-2xl font-black orbitron text-blue-400">৳<span id="totalAmount">0.00</span></span>
                 </div>
-
                 <button onclick="goToPayment()" class="btn-gradient w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">Proceed to Payment</button>
             </div>
         </div>
@@ -198,13 +206,11 @@
                 <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-1">Your Tracking ID</p>
                 <h2 id="displayOrderID" class="text-3xl font-black orbitron text-blue-500 tracking-tighter">#ORD-000000</h2>
             </div>
-
             <div class="space-y-4">
                 <div class="p-4 bg-blue-600/10 rounded-2xl flex justify-between items-center border border-blue-500/20">
                     <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Payable Amount:</span>
                     <span class="text-xl font-black orbitron">৳<span id="confirmAmount">0.00</span></span>
                 </div>
-
                 <div onclick="copyNumber('01408461902')" class="p-5 bg-black/40 rounded-2xl flex justify-between items-center border border-white/5 cursor-pointer active:scale-95 transition">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-wallet text-blue-500"></i>
@@ -215,23 +221,16 @@
                     </div>
                     <i class="far fa-copy text-gray-500"></i>
                 </div>
-
                 <input type="text" id="trxID" placeholder="ENTER TRXID" class="w-full p-5 rounded-2xl text-center orbitron font-bold text-blue-400 tracking-[0.2em]">
-
                 <button onclick="placeOrder()" id="orderBtn" class="btn-gradient w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">Place Order <i class="fas fa-bolt ml-2"></i></button>
                 <button onclick="goBack()" class="w-full text-[10px] font-bold text-gray-500 uppercase mt-4 hover:text-white">Go Back</button>
             </div>
         </div>
 
         <div id="successModal" class="bg-[#0a0f1e] w-full max-w-sm p-10 rounded-[2.5rem] border border-blue-500/30 text-center hidden">
-            <div class="check-container">
-                <i class="fas fa-check text-4xl text-white"></i>
-            </div>
+            <div class="check-container"><i class="fas fa-check text-4xl text-white"></i></div>
             <h2 class="text-2xl font-black mb-3 orbitron uppercase">অর্ডার সফল হয়েছে!</h2>
-            <p class="text-gray-400 text-sm leading-relaxed mb-8">
-                আপনার অর্ডারটি অ্যাডমিনের কাছে পাঠানো হয়েছে। পেমেন্ট ঠিক থাকলে কিছুক্ষণের মধ্যে সম্পন্ন করা হবে।<br><br>
-                <span class="text-blue-400 font-bold uppercase text-[10px]">সর্বোচ্চ ১২ ঘণ্টার মধ্যে ডেলিভারি পাবেন।</span>
-            </p>
+            <p class="text-gray-400 text-sm leading-relaxed mb-8">সর্বোচ্চ ১২ ঘণ্টার মধ্যে ডেলিভারি পাবেন।</p>
             <button onclick="location.reload()" class="bg-blue-600 w-full py-4 rounded-xl font-black orbitron shadow-lg shadow-blue-500/20">ঠিক আছে</button>
         </div>
     </div>
@@ -306,10 +305,8 @@
         async function placeOrder() {
             const trx = document.getElementById('trxID').value.trim();
             if(!trx) return alert("Enter TrxID to confirm payment!");
-
             const btn = document.getElementById('orderBtn');
             btn.disabled = true; btn.innerText = "Processing...";
-
             const orderData = {
                 orderID: currentOrderID,
                 userName: document.getElementById('userName').value,
@@ -323,55 +320,50 @@
                 status: "Pending",
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
-            // Firebase Save
             db.collection("orders").add(orderData).then(async () => {
-                
-                // --- Telegram Forward Start ---
                 const botToken = "8073726192:AAEgyXf884Gz5NFlfMPPb6f1fbHZ3mFOTZU";
                 const chatId = "7236181886";
-                const text = `🚀 *New Order Alert!*%0A━━━━━━━━━━━━━━%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A🔗 *Link:* ${orderData.link}%0A🔢 *Qty:* ${orderData.qty}%0A💰 *Amount:* ৳${orderData.amount}%0A💳 *Method:* ${orderData.method}%0A🆔 *TrxID:* ${orderData.trxID}%0A🆔 *Order ID:* #${orderData.orderID}%0A━━━━━━━━━━━━━━`;
-                
-                try {
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`);
-                } catch(e) { console.log("Telegram Error", e); }
-                // --- Telegram Forward End ---
-
+                const text = `🚀 *New Order Alert!*%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A💰 *Amount:* ৳${orderData.amount}%0A🆔 *Order ID:* #${orderData.orderID}`;
+                try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`); } catch(e) {}
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
-            }).catch(err => {
-                alert("Error placing order: " + err.message);
-                btn.disabled = false; btn.innerText = "Place Order";
             });
         }
 
         function copyNumber(n) { navigator.clipboard.writeText(n); alert("Number Copied!"); }
 
-        function trackOrder() {
-            const id = prompt("আপনার Order ID অথবা TrxID দিন:");
-            if(!id) return;
+        // NEW TRACKING FUNCTIONS (ADDED)
+        function openTrackingModal() { 
+            document.getElementById('trackingModal').classList.remove('hidden'); 
+            document.getElementById('trackResult').classList.add('hidden');
+            document.getElementById('trackInput').value = "";
+        }
+        function closeTrackingModal() { document.getElementById('trackingModal').classList.add('hidden'); }
+
+        function startTracking() {
+            const id = document.getElementById('trackInput').value.trim();
+            if(!id) return alert("Enter ID");
+            const btn = document.getElementById('trackBtn');
+            btn.innerText = "Searching...";
             
-            // Search by Order ID
-            db.collection("orders").where("orderID", "==", id.trim()).get().then(qs => {
+            db.collection("orders").where("orderID", "==", id).get().then(qs => {
                 if(qs.empty) {
-                    // Search by TrxID if Order ID not found
-                    db.collection("orders").where("trxID", "==", id.trim().toUpperCase()).get().then(qs2 => {
-                        if(qs2.empty) {
-                            alert("দুঃখিত, কোনো অর্ডার পাওয়া যায়নি। সঠিক আইডি দিন।");
-                        } else {
-                            qs2.forEach(doc => {
-                                alert(`📦 অর্ডারের তথ্য:\n------------------\nOrder ID: #${doc.data().orderID}\nStatus: ${doc.data().status}\nService: ${doc.data().service}`);
-                            });
-                        }
+                    db.collection("orders").where("trxID", "==", id.toUpperCase()).get().then(qs2 => {
+                        if(qs2.empty) { alert("No Order Found!"); btn.innerText = "Search Status"; }
+                        else qs2.forEach(doc => showTrackResult(doc.data()));
                     });
-                } else {
-                    qs.forEach(doc => {
-                        alert(`📦 অর্ডারের তথ্য:\n------------------\nOrder ID: #${doc.data().orderID}\nStatus: ${doc.data().status}\nService: ${doc.data().service}`);
-                    });
-                }
-            }).catch(err => {
-                alert("ট্র্যাকিং করতে সমস্যা হচ্ছে: " + err.message);
+                } else qs.forEach(doc => showTrackResult(doc.data()));
             });
+        }
+
+        function showTrackResult(data) {
+            document.getElementById('trackResult').classList.remove('hidden');
+            document.getElementById('resID').innerText = "#" + data.orderID;
+            document.getElementById('resStatus').innerText = data.status;
+            document.getElementById('resService').innerText = data.service;
+            document.getElementById('resQty').innerText = data.qty;
+            document.getElementById('resStatus').className = "status-badge " + (data.status === 'Completed' ? 'status-completed' : 'status-pending');
+            document.getElementById('trackBtn').innerText = "Search Status";
         }
     </script>
 </body>
