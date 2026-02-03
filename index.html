@@ -348,15 +348,29 @@
         function copyNumber(n) { navigator.clipboard.writeText(n); alert("Number Copied!"); }
 
         function trackOrder() {
-            const id = prompt("Enter Order ID or TrxID:");
+            const id = prompt("আপনার Order ID অথবা TrxID দিন:");
             if(!id) return;
+            
+            // Search by Order ID
             db.collection("orders").where("orderID", "==", id.trim()).get().then(qs => {
                 if(qs.empty) {
+                    // Search by TrxID if Order ID not found
                     db.collection("orders").where("trxID", "==", id.trim().toUpperCase()).get().then(qs2 => {
-                        if(qs2.empty) alert("No order found.");
-                        else qs2.forEach(doc => alert("Order ID: " + doc.data().orderID + "\nStatus: " + doc.data().status));
+                        if(qs2.empty) {
+                            alert("দুঃখিত, কোনো অর্ডার পাওয়া যায়নি। সঠিক আইডি দিন।");
+                        } else {
+                            qs2.forEach(doc => {
+                                alert(`📦 অর্ডারের তথ্য:\n------------------\nOrder ID: #${doc.data().orderID}\nStatus: ${doc.data().status}\nService: ${doc.data().service}`);
+                            });
+                        }
                     });
-                } else qs.forEach(doc => alert("Order ID: " + doc.data().orderID + "\nStatus: " + doc.data().status));
+                } else {
+                    qs.forEach(doc => {
+                        alert(`📦 অর্ডারের তথ্য:\n------------------\nOrder ID: #${doc.data().orderID}\nStatus: ${doc.data().status}\nService: ${doc.data().service}`);
+                    });
+                }
+            }).catch(err => {
+                alert("ট্র্যাকিং করতে সমস্যা হচ্ছে: " + err.message);
             });
         }
     </script>
