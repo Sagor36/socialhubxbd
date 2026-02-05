@@ -328,7 +328,7 @@
             db.collection("orders").add(orderData).then(async () => {
                 const botToken = "8073726192:AAEgyXf884Gz5NFlfMPPb6f1fbHZ3mFOTZU";
                 const chatId = "7236181886";
-                const text = `🚀 *New Order Social HubX BD!*%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A💰 *Amount:* ৳${orderData.amount}%0A🆔 *Transaction ID:* ${orderData.trxID}`;
+             const text = `🚀 *New Order Alert!*%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A🔗 *Link:* ${orderData.link}%0A💰 *Amount:* ৳${orderData.amount}%0A🆔 *Transaction ID:* ${orderData.trxID}`;
                 try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`); } catch(e) {}
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
