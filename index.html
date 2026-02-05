@@ -236,7 +236,7 @@
     </div>
 
     <div class="fixed bottom-8 right-8 flex flex-row items-center gap-3 z-50">
-        <a href="https://www.facebook.com/YOUR_PAGE_LINK" target="_blank" class="bg-[#1877F2] w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-2xl transition hover:scale-110 active:scale-95">
+        <a href="https://www.facebook.com/profile.php?id=61587168587175" target="_blank" class="bg-[#1877F2] w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-2xl transition hover:scale-110 active:scale-95">
             <i class="fab fa-facebook-f text-white"></i>
         </a>
         <a href="https://wa.me/8801408461902" target="_blank" class="bg-[#25d366] w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-2xl transition hover:scale-110 active:scale-95">
@@ -328,7 +328,7 @@
             db.collection("orders").add(orderData).then(async () => {
                 const botToken = "8073726192:AAEgyXf884Gz5NFlfMPPb6f1fbHZ3mFOTZU";
                 const chatId = "7236181886";
-                const text = `🚀 *New Order Alert!*%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A💰 *Amount:* ৳${orderData.amount}%0A🆔 *Order ID:* #${orderData.orderID}`;
+                const text = `🚀 *New Order Social HubX BD!*%0A👤 *User:* ${orderData.userName}%0A📦 *Service:* ${orderData.service}%0A💰 *Amount:* ৳${orderData.amount}%0A🆔 *Transaction ID:* ${orderData.trxID}`;
                 try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`); } catch(e) {}
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('successModal').classList.remove('hidden');
