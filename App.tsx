@@ -14,7 +14,7 @@ import UserOrders from './components/UserOrders';
 // TELEGRAM BOT SETTINGS
 // ===============================
 
-const BOT_TOKEN = '8853917367:AAHxCiPdcNVzzI4vjgWH9WzjQCDNXDnGWFg';
+const BOT_TOKEN = '8971992833:AAElHU1vSirPp1LC1B91sqOR8dPUNHum3K8';
 const CHAT_ID = '7002010324';
 
 // ===============================
