@@ -2,7 +2,7 @@ import React from 'react';
 import { Service } from './types';
 
 // Admin Login Password
-export const ADMIN_PASSWORD = 'Jannati990';
+export const ADMIN_PASSWORD = '1234';
 
 // Contact Information
 export const SUPPORT_NUMBER = '+8801318102806';
